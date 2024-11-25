@@ -12,11 +12,11 @@ GameObject:
   - component: {fileID: 7525781405234727084}
   - component: {fileID: 5068116735692616594}
   - component: {fileID: 4658470604741722629}
-  - component: {fileID: 3643147437302521258}
   - component: {fileID: 3544068443047971250}
+  - component: {fileID: 2718795999168889352}
   m_Layer: 0
-  m_Name: Sphere
-  m_TagString: Untagged
+  m_Name: FireShell
+  m_TagString: Shell
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
@@ -110,19 +110,6 @@ SphereCollider:
   serializedVersion: 3
   m_Radius: 0.75
   m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &3643147437302521258
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 9214879171260181208}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 78e3681eda88c1a48be31ff4b3d4ade4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  shellSpeed: 50
 --- !u!54 &3544068443047971250
 Rigidbody:
   m_ObjectHideFlags: 0
@@ -131,7 +118,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9214879171260181208}
   serializedVersion: 4
-  m_Mass: 1
+  m_Mass: 0.5
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
@@ -150,3 +137,17 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 0
   m_CollisionDetection: 0
+--- !u!114 &2718795999168889352
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 9214879171260181208}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2c47fb472b4a82c49a237e2ff8a0d9a6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  shellSpeed: 10
+  fireAEO: {fileID: 8517429332474404739, guid: 949e1c9ef4545a64bacbbe355de7171f, type: 3}
