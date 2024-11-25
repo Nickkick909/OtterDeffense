@@ -3,6 +3,7 @@ using UnityEngine;
 public class PowerUp : MonoBehaviour
 {
     [SerializeField] PowerUpType type;
+    public int ammoCount;
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -23,11 +24,11 @@ public class PowerUp : MonoBehaviour
         {
             Debug.Log("Trigger entered player");
             if (type == PowerUpType.Shotgun) {
-                other.GetComponent<Player>().SetAttackType(AttackType.Shotgun);
+                other.GetComponent<Player>().SetAttackType(AttackType.Shotgun, ammoCount);
             }
             else if (type == PowerUpType.FireAEO)
             {
-                other.GetComponent<Player>().SetAttackType(AttackType.FireAOE);
+                other.GetComponent<Player>().SetAttackType(AttackType.FireAOE, ammoCount);
             }
 
             Destroy(gameObject);

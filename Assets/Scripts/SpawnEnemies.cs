@@ -20,9 +20,12 @@ public class SpawnEnemies : MonoBehaviour
     public delegate void WaveCompleted();
     public static WaveCompleted waveCompleted;
 
+    bool waveActive;
+
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player").transform;
+        waveActive = false;
     }
 
     private void OnEnable()
@@ -39,7 +42,7 @@ public class SpawnEnemies : MonoBehaviour
 
     void Update()
     {
-        if (Input.GetKeyDown(KeyCode.N))
+        if (!waveActive && Input.GetKeyDown(KeyCode.Return))
         {
             StartCoroutine(SpawnNextWave());
         }
@@ -71,6 +74,11 @@ public class SpawnEnemies : MonoBehaviour
     void RemoveEnemyFromList(GameObject enemy)
     {
         enemiesAlive.Remove(enemy);
+
+        if (enemiesAlive.Count < 1)
+        {
+            waveCompleted?.Invoke();
+        }
     }
 
     void WaveFinshed()

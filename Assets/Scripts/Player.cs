@@ -20,10 +20,7 @@ public class Player : MonoBehaviour
     [SerializeField] private bool groundedPlayer;
     [SerializeField] private float gravityValue = -9.81f;
 
-    int currentAttackAmo = 0;
-
-    int shotgunPowerUpAmo = 10;
-    int firePowerUpAmo = 1;
+    int currentAttackAmmo = 0;
 
     int health = 10;
     int maxHealth = 10;
@@ -134,7 +131,7 @@ public class Player : MonoBehaviour
 
     void ShotgunAttack()
     {
-        currentAttackAmo--;
+        currentAttackAmmo--;
         StartCoroutine(ShellCooldown(shotgunShellCooldown));
 
         // Angle each shot out
@@ -147,7 +144,7 @@ public class Player : MonoBehaviour
         Instantiate(shellSpawnPrefab, leftShellSpawn.position, Quaternion.Euler(leftRotation));
         Instantiate(shellSpawnPrefab, rightShellSpawn.position, Quaternion.Euler(rightRotation));
 
-        if (currentAttackAmo < 1)
+        if (currentAttackAmmo < 1)
         {
             currentAttackType = AttackType.Basic;
         }
@@ -155,28 +152,27 @@ public class Player : MonoBehaviour
 
     void FireAttack()
     {
-        currentAttackAmo--;
+        currentAttackAmmo--;
         Instantiate(fireShellSpawnPrefab, shellSpawn.position, transform.rotation);
 
-        if (currentAttackAmo < 1)
+        if (currentAttackAmmo < 1)
         {
             currentAttackType = AttackType.Basic;
         }
 
-        readyToShootShell = true;
+        StartCoroutine(ShellCooldown(basicShellCooldown));
     }
 
-    public void SetAttackType(AttackType attackType)
+    public void SetAttackType(AttackType attackType, int ammoCount)
     {
+        currentAttackAmmo = ammoCount;
         Debug.Log("Set attack type");
         if (attackType == AttackType.Shotgun)
         {
             currentAttackType = attackType;
-            currentAttackAmo = shotgunPowerUpAmo;
         } else if (attackType == AttackType.FireAOE)
         {
             currentAttackType = attackType;
-            currentAttackAmo = shotgunPowerUpAmo;
         }
     }
 }
