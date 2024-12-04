@@ -31,7 +31,7 @@ public class PowerUp : MonoBehaviour
                 other.GetComponent<Player>().SetAttackType(AttackType.FireAOE, ammoCount);
             }
 
-            Destroy(gameObject);
+            gameObject.SetActive(false);
 
         }
     }

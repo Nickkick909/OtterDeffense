@@ -10,8 +10,12 @@ public class SpawnEnemies : MonoBehaviour
     [SerializeField] float maxRange;
 
     [SerializeField] GameObject[] enemies;
+    [SerializeField] GameObject[] powerUps;
 
     [SerializeField] int enemiesToSpawn = 5;
+    [SerializeField] int powerUpsToSpawn = 1;
+
+    int maxPowerUpsToSpawn = 5;
 
     public List<GameObject> enemiesAlive = new List<GameObject>();
 
@@ -20,24 +24,32 @@ public class SpawnEnemies : MonoBehaviour
     public delegate void WaveCompleted();
     public static WaveCompleted waveCompleted;
 
+    public delegate void EnemyCountUpdated(int enemiesAlive);
+    public static EnemyCountUpdated enemyCountUpdated;
+
     bool waveActive;
 
     void Start()
     {
         player = GameObject.FindGameObjectWithTag("Player").transform;
         waveActive = false;
+
+        foreach (GameObject p in powerUps)
+        {
+            p.SetActive(false);
+        }
     }
 
     private void OnEnable()
     {
         waveCompleted += WaveFinshed;
-        Enemy.enemieDied += RemoveEnemyFromList;
+        Enemy.enemyDied += RemoveEnemyFromList;
     }
 
     private void OnDisable()
     {
         waveCompleted -= WaveFinshed;
-        Enemy.enemieDied -= RemoveEnemyFromList;
+        Enemy.enemyDied -= RemoveEnemyFromList;
     }
 
     void Update()
@@ -63,17 +75,42 @@ public class SpawnEnemies : MonoBehaviour
 
             enemiesAlive.Add(Instantiate(enemies[randomIndex], new Vector3(player.position.x + xAwayFromPlayer, 0, player.position.z + zAwayFromPlayer), Quaternion.identity));
 
-            yield return new WaitForSeconds(0.1f);
+            enemyCountUpdated?.Invoke(enemiesAlive.Count);
+
+            yield return new WaitForSeconds(0.25f);
         }
 
+        
         yield return null;
 
+        enemiesToSpawn += Random.Range(Mathf.RoundToInt(enemiesToSpawn * 1.25f), Mathf.RoundToInt(enemiesToSpawn * 2f));
+
+        powerUpsToSpawn = Random.Range(0,maxPowerUpsToSpawn);
         // Spawn in random power ups
+        for (int i = 0; i < powerUpsToSpawn; i++)
+        {
+            int randomIndex = Random.Range(0, powerUps.Length);
+
+            int tryCount = 0;
+            int tryMax = 3;
+            while (powerUps[randomIndex].activeSelf && tryCount < tryMax)
+            {
+                // Try 3 times to spawn a new power up
+                // If we hit already active power ups 3 times, then the universe decided we didn't need that power up lol
+                randomIndex = Random.Range(0, powerUps.Length);
+                tryCount++;
+            }
+
+            powerUps[randomIndex].SetActive(true);
+        }
+
     }
 
     void RemoveEnemyFromList(GameObject enemy)
     {
         enemiesAlive.Remove(enemy);
+
+        enemyCountUpdated?.Invoke(enemiesAlive.Count);
 
         if (enemiesAlive.Count < 1)
         {

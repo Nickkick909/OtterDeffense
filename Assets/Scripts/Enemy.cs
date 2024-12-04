@@ -4,19 +4,24 @@ using UnityEngine.AI;
 
 public class Enemy : MonoBehaviour
 {
+    
     Animator animator;
     NavMeshAgent agent;
-    Transform player;
+    public Transform player;
     ParticleSystem deathPoof;
 
     public int health;
 
     bool chasingPlayer = true;
 
-    public delegate void EnemieDied(GameObject enemy);
-    public static EnemieDied enemieDied;
+    public delegate void EnemyDied(GameObject enemy);
+    public static EnemyDied enemyDied;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    bool canAttackPlayer = true;
+    bool inRangeForAttack = false;
+
+    public Player playerObject;
+
     void Start()
     {
         animator = GetComponent<Animator>();
@@ -25,12 +30,14 @@ public class Enemy : MonoBehaviour
         deathPoof = GetComponent<ParticleSystem>();
 
         animator.SetBool("Running", true);
+
+        playerObject = player.gameObject.GetComponentInParent<Player>();
     }
 
-    // Update is called once per frame
     void Update()
     {
         agent.SetDestination(player.position);
+        TryToAttackPlayer();
     }
 
     public void TakeDamage()
@@ -49,6 +56,16 @@ public class Enemy : MonoBehaviour
         
     }
 
+    void TryToAttackPlayer()
+    {
+        if (canAttackPlayer && inRangeForAttack)
+        {
+            canAttackPlayer = false;
+            playerObject.TakeDamage(1);
+            StartCoroutine(WaitForAttackCoolDown());
+        }
+    }
+
     IEnumerator WaitToDie()
     {
         animator.SetBool("Running", false);
@@ -56,9 +73,31 @@ public class Enemy : MonoBehaviour
         agent.speed = 0;
         deathPoof.Play();
 
-        enemieDied?.Invoke(gameObject);
+        enemyDied?.Invoke(gameObject);
 
         yield return new WaitForSeconds(2f);
         Destroy(gameObject);
+    }
+
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            inRangeForAttack = true;
+        }
+    }
+
+    private void OnTriggerExit(Collider other)
+    {
+        if (other.CompareTag("Player"))
+        {
+            inRangeForAttack = false;
+        }
+    }
+
+    IEnumerator WaitForAttackCoolDown()
+    {
+        yield return new WaitForSeconds(1f);
+        canAttackPlayer = true;
     }
 }

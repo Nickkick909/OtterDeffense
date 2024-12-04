@@ -30,6 +30,9 @@ public class Player : MonoBehaviour
 
     Animator animator;
 
+    public delegate void PlayerDied(GameObject player);
+    public static PlayerDied playerDied;
+
     // Start is called once before the first execution of Update after the MonoBehaviour is created
     void Start()
     {
@@ -55,7 +58,7 @@ public class Player : MonoBehaviour
         {
             // player died
 
-
+            playerDied?.Invoke(gameObject);
         }
 
     }
@@ -174,6 +177,17 @@ public class Player : MonoBehaviour
         {
             currentAttackType = attackType;
         }
+    }
+
+    public void TakeDamage(int damage)
+    {
+        Debug.Log("Player take damage. New Health: " + health.ToString());
+        health -= damage;
+    }
+
+    public void HandlePlayerDeath(GameObject player)
+    {
+        animator.SetBool("Death", true);
     }
 }
 
