@@ -1,0 +1,29 @@
+fileFormatVersion: 2
+guid: 5af3375a981cdd54aa2cfb557365b521
+AudioImporter:
+  externalObjects: {}
+  serializedVersion: 6
+  defaultSettings:
+    loadType: 0
+    sampleRateSetting: 0
+    sampleRateOverride: 44100
+    compressionFormat: 1
+    quality: 1
+    conversionMode: 0
+  platformSettingOverrides: {}
+  forceToMono: 0
+  normalize: 1
+  preloadAudioData: 1
+  loadInBackground: 0
+  ambisonic: 0
+  3D: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 226709
+  packageName: 5 Free Electronic Game Songs
+  packageVersion: 1.0
+  assetPath: Assets/5 Free Electronic Game Songs/Free Game Music Song 2.wav
+  uploadId: 517376

@@ -5,15 +5,16 @@ using UnityEngine;
 
 public class SpawnEnemies : MonoBehaviour
 {
-
+    const int WAVE_1_ENEMIES = 5;
+    const int WAVE_1_POWERUPS = 1;
     [SerializeField] float minRange;
     [SerializeField] float maxRange;
 
     [SerializeField] GameObject[] enemies;
     [SerializeField] GameObject[] powerUps;
 
-    [SerializeField] int enemiesToSpawn = 5;
-    [SerializeField] int powerUpsToSpawn = 1;
+    [SerializeField] int enemiesToSpawn = WAVE_1_ENEMIES;
+    [SerializeField] int powerUpsToSpawn = WAVE_1_POWERUPS;
 
     int maxPowerUpsToSpawn = 5;
 
@@ -27,7 +28,13 @@ public class SpawnEnemies : MonoBehaviour
     public delegate void EnemyCountUpdated(int enemiesAlive);
     public static EnemyCountUpdated enemyCountUpdated;
 
+    public delegate void WaveStarted(int waveNumber);
+    public static WaveStarted waveStarted;
+
     bool waveActive;
+    bool gameOver = false;
+
+    public int waveNumber = 0;
 
     void Start()
     {
@@ -44,24 +51,61 @@ public class SpawnEnemies : MonoBehaviour
     {
         waveCompleted += WaveFinshed;
         Enemy.enemyDied += RemoveEnemyFromList;
+        Player.playerDied += GameOver;
+        UIManager.resetGame += ResetGame;
+        UIManager.startGame += SpawnNewWave;
     }
 
     private void OnDisable()
     {
         waveCompleted -= WaveFinshed;
         Enemy.enemyDied -= RemoveEnemyFromList;
+        Player.playerDied -= GameOver;
+        UIManager.resetGame -= ResetGame;
+        UIManager.startGame += SpawnNewWave;
     }
 
     void Update()
     {
-        if (!waveActive && Input.GetKeyDown(KeyCode.Return))
+        if (!gameOver && !waveActive && Input.GetKeyDown(KeyCode.Space))
         {
+            SpawnNewWave();
+        }
+    }
+
+    void SpawnNewWave()
+    {
+        if (waveActive == false)
+        {
+            waveActive = true;
             StartCoroutine(SpawnNextWave());
         }
     }
 
     public IEnumerator SpawnNextWave()
     {
+        waveNumber += 1;
+        waveStarted?.Invoke(waveNumber);
+
+        powerUpsToSpawn = Random.Range(0, maxPowerUpsToSpawn);
+        // Spawn in random power ups
+        for (int i = 0; i < powerUpsToSpawn; i++)
+        {
+            int randomIndex = Random.Range(0, powerUps.Length);
+
+            int tryCount = 0;
+            int tryMax = 3;
+            while (powerUps[randomIndex].activeSelf && tryCount < tryMax)
+            {
+                // Try 3 times to spawn a new power up
+                // If we hit already active power ups 3 times, then the universe decided we didn't need that power up lol
+                randomIndex = Random.Range(0, powerUps.Length);
+                tryCount++;
+            }
+
+            powerUps[randomIndex].SetActive(true);
+        }
+
         // Spawn Enemies in a radius around player
         for (int i = 0; i < enemiesToSpawn; i++)
         {
@@ -83,26 +127,9 @@ public class SpawnEnemies : MonoBehaviour
         
         yield return null;
 
-        enemiesToSpawn += Random.Range(Mathf.RoundToInt(enemiesToSpawn * 1.25f), Mathf.RoundToInt(enemiesToSpawn * 2f));
+        Debug.Log("Enemies to spawn: "+ enemiesToSpawn+ " Range to add: "+ enemiesToSpawn * 0.5f+ " - "+ enemiesToSpawn * 1.25f);
 
-        powerUpsToSpawn = Random.Range(0,maxPowerUpsToSpawn);
-        // Spawn in random power ups
-        for (int i = 0; i < powerUpsToSpawn; i++)
-        {
-            int randomIndex = Random.Range(0, powerUps.Length);
-
-            int tryCount = 0;
-            int tryMax = 3;
-            while (powerUps[randomIndex].activeSelf && tryCount < tryMax)
-            {
-                // Try 3 times to spawn a new power up
-                // If we hit already active power ups 3 times, then the universe decided we didn't need that power up lol
-                randomIndex = Random.Range(0, powerUps.Length);
-                tryCount++;
-            }
-
-            powerUps[randomIndex].SetActive(true);
-        }
+        enemiesToSpawn += Random.Range(Mathf.RoundToInt(enemiesToSpawn * 0.5f), Mathf.RoundToInt(enemiesToSpawn * 1.25f));
 
     }
 
@@ -120,11 +147,28 @@ public class SpawnEnemies : MonoBehaviour
 
     void WaveFinshed()
     {
-        // Once a wave is finished
+        waveActive = false;
+    }
 
-        // Display some text like "Wave completed"
-        // Do this in a UI controller delegate function
+    void GameOver(GameObject player)
+    {
+        gameOver = true;
+    }
 
-        // Either a count down or wait for input to start next wave
+    void ResetGame()
+    {
+        waveNumber = 0;
+        enemiesToSpawn = WAVE_1_ENEMIES;
+        powerUpsToSpawn = WAVE_1_POWERUPS;
+        foreach (var enemy in enemiesAlive)
+        {
+            Destroy(enemy);
+        }
+        enemiesAlive.Clear();
+
+        gameOver = false;
+
+        waveActive = true;
+        StartCoroutine(SpawnNextWave());
     }
 }

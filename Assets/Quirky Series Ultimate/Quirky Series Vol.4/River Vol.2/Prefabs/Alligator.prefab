@@ -346,7 +346,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7b702189579cbfb4eb99849b640464b4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  player: {fileID: 0}
   health: 3
+  playerObject: {fileID: 0}
+  invalidLayer:
+    serializedVersion: 2
+    m_Bits: 1024
 --- !u!195 &-1889977553700009112
 NavMeshAgent:
   m_ObjectHideFlags: 0

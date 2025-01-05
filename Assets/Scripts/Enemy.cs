@@ -22,6 +22,8 @@ public class Enemy : MonoBehaviour
 
     public Player playerObject;
 
+    public LayerMask invalidLayer;
+
     void Start()
     {
         animator = GetComponent<Animator>();
@@ -32,12 +34,27 @@ public class Enemy : MonoBehaviour
         animator.SetBool("Running", true);
 
         playerObject = player.gameObject.GetComponentInParent<Player>();
+
+
+        if (CanReachPosition(player.position) == false)
+        {
+            enemyDied?.Invoke(gameObject);
+            Destroy(gameObject);
+        }
     }
 
     void Update()
     {
         agent.SetDestination(player.position);
         TryToAttackPlayer();
+    }
+
+    public bool CanReachPosition(Vector2 position)
+    {
+        NavMeshPath path = new NavMeshPath();
+        agent.CalculatePath(position, path);
+        return path.status == NavMeshPathStatus.PathComplete;
+        
     }
 
     public void TakeDamage()
@@ -99,5 +116,14 @@ public class Enemy : MonoBehaviour
     {
         yield return new WaitForSeconds(1f);
         canAttackPlayer = true;
+    }
+
+    private void OnCollision(Collision collision)
+    {
+        if (collision.gameObject.layer == invalidLayer)
+        {
+            Debug.Log("Invlid spawn... Destroying");
+            Destroy(gameObject);
+        }
     }
 }

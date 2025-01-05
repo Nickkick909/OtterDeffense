@@ -4,17 +4,7 @@ public class PowerUp : MonoBehaviour
 {
     [SerializeField] PowerUpType type;
     public int ammoCount;
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
-    {
-        
-    }
 
-    // Update is called once per frame
-    void Update()
-    {
-        
-    }
 
     private void OnTriggerEnter(Collider other)
     {
@@ -29,6 +19,9 @@ public class PowerUp : MonoBehaviour
             else if (type == PowerUpType.FireAEO)
             {
                 other.GetComponent<Player>().SetAttackType(AttackType.FireAOE, ammoCount);
+            } else if (type == PowerUpType.Healh)
+            {
+                other.GetComponent<Player>().Heal(ammoCount);
             }
 
             gameObject.SetActive(false);
@@ -40,6 +33,7 @@ public class PowerUp : MonoBehaviour
 public enum PowerUpType
 {
     Shotgun,
-    FireAEO
+    FireAEO,
+    Healh
 }
 

@@ -1,8 +1,10 @@
+using JetBrains.Annotations;
 using System.Collections;
 using UnityEngine;
 
 public class Player : MonoBehaviour
 {
+    private Vector3 startPosition;
     [SerializeField] float movementSpeed = 5;
 
     [SerializeField] Transform shellSpawn;
@@ -11,7 +13,7 @@ public class Player : MonoBehaviour
     [SerializeField] GameObject shellSpawnPrefab;
     [SerializeField] GameObject fireShellSpawnPrefab;
 
-    bool readyToShootShell = true;
+    bool readyToShootShell = false;
     float basicShellCooldown = 0.25f;
     float shotgunShellCooldown = 0.25f;
     [SerializeField] CharacterController controller;
@@ -20,10 +22,12 @@ public class Player : MonoBehaviour
     [SerializeField] private bool groundedPlayer;
     [SerializeField] private float gravityValue = -9.81f;
 
+    public LayerMask IgnoreEnvironment;
+
     int currentAttackAmmo = 0;
 
-    int health = 10;
-    int maxHealth = 10;
+    public float health = 10;
+    public float maxHealth = 10;
 
     [SerializeField] AttackType currentAttackType = AttackType.Basic;
 
@@ -33,19 +37,48 @@ public class Player : MonoBehaviour
     public delegate void PlayerDied(GameObject player);
     public static PlayerDied playerDied;
 
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    public delegate void UpdatePlayerHealth(float health);
+    public static UpdatePlayerHealth playerHealth;
+
+    public delegate void UpdateAttackType(AttackType attackType);
+    public static UpdateAttackType updateAttackType;
+
+    public delegate void UpdateAttackAmmo(int attackAmmo);
+    public static UpdateAttackAmmo updateAttackAmmo;
+
     void Start()
     {
         animator = GetComponentInChildren<Animator>();
+        startPosition = transform.position;
+
+        updateAttackType?.Invoke(AttackType.Basic);
+        updateAttackAmmo?.Invoke(999);
     }
 
-    // Update is called once per frame
+    private void OnEnable()
+    {
+        SpawnEnemies.waveStarted += WaveStarted;
+        SpawnEnemies.waveCompleted += WaveEnded;
+        UIManager.resetGame += ResetPlayer;
+    }
+
+    private void OnDisable()
+    {
+        SpawnEnemies.waveStarted -= WaveStarted;
+        SpawnEnemies.waveCompleted -= WaveEnded;
+        UIManager.resetGame -= ResetPlayer;
+    }
+
     void Update()
     {
+        // Don't need to let player move, attack, look around if we are dead
+        if (health > 0)
+        {
+            HandleMovement();
+            HandleLook();
+            HandleAttack();
+        }
 
-        HandleMovement();
-        HandleLook();
-        HandleAttack();
         HandleHealth();
     }
     void HandleHealth()
@@ -53,11 +86,13 @@ public class Player : MonoBehaviour
         // Set healthbar to match health
         float healthPercent = health / maxHealth;
         // Set health UI element
+        Debug.Log("Health percent:" + healthPercent);
+        playerHealth?.Invoke((healthPercent) * 100);
 
-        if (health > 0)
+        if (health <= 0)
         {
             // player died
-
+            animator.SetBool("Death", true);
             playerDied?.Invoke(gameObject);
         }
 
@@ -95,7 +130,7 @@ public class Player : MonoBehaviour
         Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
         RaycastHit hit;
 
-        if (Physics.Raycast(ray, out hit))
+        if (Physics.Raycast(ray, out hit, 1000f, ~IgnoreEnvironment))
         {
             transform.LookAt(new Vector3(hit.point.x, 0, hit.point.z));
         }
@@ -103,7 +138,7 @@ public class Player : MonoBehaviour
 
     void HandleAttack()
     {
-        if (Input.GetKey(KeyCode.Space) && readyToShootShell)
+        if (Input.GetKey(KeyCode.Mouse0) && readyToShootShell)
         {
             readyToShootShell = false;
 
@@ -147,9 +182,13 @@ public class Player : MonoBehaviour
         Instantiate(shellSpawnPrefab, leftShellSpawn.position, Quaternion.Euler(leftRotation));
         Instantiate(shellSpawnPrefab, rightShellSpawn.position, Quaternion.Euler(rightRotation));
 
+        updateAttackAmmo?.Invoke(currentAttackAmmo);
+
         if (currentAttackAmmo < 1)
         {
             currentAttackType = AttackType.Basic;
+            updateAttackType?.Invoke(AttackType.Basic);
+            updateAttackAmmo?.Invoke(999);
         }
     }
 
@@ -158,9 +197,13 @@ public class Player : MonoBehaviour
         currentAttackAmmo--;
         Instantiate(fireShellSpawnPrefab, shellSpawn.position, transform.rotation);
 
+        updateAttackAmmo?.Invoke(currentAttackAmmo);
+
         if (currentAttackAmmo < 1)
         {
             currentAttackType = AttackType.Basic;
+            updateAttackType?.Invoke(AttackType.Basic);
+            updateAttackAmmo?.Invoke(999);
         }
 
         StartCoroutine(ShellCooldown(basicShellCooldown));
@@ -177,17 +220,48 @@ public class Player : MonoBehaviour
         {
             currentAttackType = attackType;
         }
+
+        updateAttackType?.Invoke(attackType);
+        updateAttackAmmo?.Invoke(ammoCount);
     }
 
     public void TakeDamage(int damage)
     {
         Debug.Log("Player take damage. New Health: " + health.ToString());
         health -= damage;
+
+        
     }
 
     public void HandlePlayerDeath(GameObject player)
     {
         animator.SetBool("Death", true);
+    }
+
+    public void WaveStarted(int waveNumber)
+    {
+        readyToShootShell = true;
+    }
+
+    public void WaveEnded()
+    {
+        readyToShootShell = false;
+    }
+
+    void ResetPlayer()
+    {
+        health = maxHealth;
+        transform.position = startPosition;
+        animator.SetBool("Death", false);
+    }
+
+    public void Heal(int healAmount)
+    {
+        health += healAmount;
+        if (health > maxHealth)
+        {
+            health = maxHealth;
+        }
     }
 }
 
